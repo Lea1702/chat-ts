@@ -7,10 +7,13 @@
         "typescript": "^5.0.0"
     },
     "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.590.0",
+        "@aws-sdk/lib-dynamodb": "^3.590.0",
         "@pulumi/aws": "^6.38.0",
         "@pulumi/awsx": "^2.11.0",
         "@pulumi/pulumi": "^3.118.0",
         "@types/aws-lambda": "^8.10.138",
-        "aws-lambda": "^1.0.7"
+        "aws-lambda": "^1.0.7",
+        "aws-sdk": "^2.1633.0"
     }
 }

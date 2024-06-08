@@ -10,7 +10,68 @@ import {
   createGroup,
   manageGroupMembers,
   getMessages,
+  // listTables,
 } from './handler'
+
+const usersTable = new aws.dynamodb.Table('usersTable', {
+  attributes: [
+    { name: 'userId', type: 'S' },
+    { name: 'username', type: 'S' },
+  ],
+  hashKey: 'userId',
+  billingMode: 'PROVISIONED',
+  readCapacity: 1,
+  writeCapacity: 1,
+  globalSecondaryIndexes: [
+    {
+      name: 'UsernameIndex',
+      hashKey: 'username',
+      projectionType: 'ALL',
+      readCapacity: 1,
+      writeCapacity: 1,
+    },
+  ],
+})
+
+const groupsTable = new aws.dynamodb.Table('groupsTable', {
+  attributes: [{ name: 'groupId', type: 'S' }],
+  hashKey: 'groupId',
+  billingMode: 'PROVISIONED',
+  readCapacity: 1,
+  writeCapacity: 1,
+})
+
+const messagesTable = new aws.dynamodb.Table('messagesTable', {
+  attributes: [
+    { name: 'messageId', type: 'S' },
+    { name: 'senderId', type: 'S' },
+    { name: 'receiverId', type: 'S' },
+  ],
+  hashKey: 'messageId',
+  billingMode: 'PROVISIONED',
+  readCapacity: 1,
+  writeCapacity: 1,
+  globalSecondaryIndexes: [
+    {
+      name: 'SenderIdIndex',
+      hashKey: 'senderId',
+      projectionType: 'ALL',
+      readCapacity: 1,
+      writeCapacity: 1,
+    },
+    {
+      name: 'ReceiverIdIndex',
+      hashKey: 'receiverId',
+      projectionType: 'ALL',
+      readCapacity: 1,
+      writeCapacity: 1,
+    },
+  ],
+})
+
+export const Users = usersTable.name
+export const Groups = groupsTable.name
+export const Messages = messagesTable.name
 
 // Create an API endpoint.
 const api = new awsx.classic.apigateway.API('messagingApi', {
@@ -60,6 +121,11 @@ const api = new awsx.classic.apigateway.API('messagingApi', {
       method: 'GET',
       eventHandler: getMessages,
     },
+    // {
+    //   path: '/tables',
+    //   method: 'GET',
+    //   eventHandler: listTables,
+    // },
   ],
 })
 
