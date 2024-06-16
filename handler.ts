@@ -9,10 +9,11 @@ import {
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb'
 import * as AWS from 'aws-sdk'
+// import { DaxClient } from 'amazon-dax-client'; // Import the DAX client
+
 AWS.config.update({ region: 'REGION' })
 
 const generateId = (): string => Math.random().toString(36).substring(2, 10)
-
 
 type Group = {
   groupId: string
@@ -52,22 +53,6 @@ export async function registerUser(
     }
   }
 }
-
-// export async function listTables(
-//   event: APIGatewayProxyEvent
-// ): Promise<APIGatewayProxyResult> {
-//   const ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' })
-//   ddb.listTables({ Limit: 10 }, function (err, data) {
-//     if (err) {
-//       console.log('Error', err.code)
-//       return { statusCode: 500, body: JSON.stringify(err) }
-//     } else {
-//       console.log('Table names are ', data.TableNames)
-//       return { statusCode: 200, body: JSON.stringify(data.TableNames) }
-//     }
-//   })
-//   return { statusCode: 500, body: 'Error listing tables.' }
-// }
 
 export async function manageBlock(
   event: APIGatewayProxyEvent
@@ -259,9 +244,15 @@ export async function manageGroupMembers(
 export async function getMessages(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+  // const dax = new DaxClient({
+  //   endpoints: ['your-dax-cluster-endpoint'], // Replace with your actual DAX endpoint
+  //   region: 'il-central-1' // Specify your AWS region
+  // });
+  // const dynamo = DynamoDBDocumentClient.from(dax); // Use DAX client
   const client = new DynamoDBClient({})
   const dynamo = DynamoDBDocumentClient.from(client)
-  const { userId, groupId } = JSON.parse(event.body!)
+
+  const { userId, groupId, lastEvaluatedKey = null } = JSON.parse(event.body!)
 
   try {
     if (userId) {
@@ -272,12 +263,24 @@ export async function getMessages(
         ExpressionAttributeValues: {
           ':senderId': userId,
         },
+        Limit: 10, // Fetch only the last X messages
+        ScanIndexForward: false, // This makes sure the items are returned in descending order by sort key (assuming sort key is timestamp or similar)
+        ExclusiveStartKey: lastEvaluatedKey
+          ? JSON.parse(lastEvaluatedKey)
+          : undefined,
       }
 
       const result = await dynamo.send(new QueryCommand(params))
+      const nextLastEvaluatedKey = result.LastEvaluatedKey
+        ? JSON.stringify(result.LastEvaluatedKey)
+        : null
+
       return {
         statusCode: 200,
-        body: JSON.stringify(result.Items),
+        body: JSON.stringify({
+          items: result.Items,
+          lastEvaluatedKey: nextLastEvaluatedKey,
+        }),
       }
     } else if (groupId) {
       const groupResult = await dynamo.send(

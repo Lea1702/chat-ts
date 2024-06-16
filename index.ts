@@ -46,8 +46,11 @@ const messagesTable = new aws.dynamodb.Table('messagesTable', {
     { name: 'messageId', type: 'S' },
     { name: 'senderId', type: 'S' },
     { name: 'receiverId', type: 'S' },
+    { name: 'timestamp', type: 'S' },
   ],
   hashKey: 'messageId',
+  rangeKey: 'timestamp', // Add this line to specify the sort key
+
   billingMode: 'PROVISIONED',
   readCapacity: 1,
   writeCapacity: 1,
@@ -55,6 +58,8 @@ const messagesTable = new aws.dynamodb.Table('messagesTable', {
     {
       name: 'SenderIdIndex',
       hashKey: 'senderId',
+      rangeKey: 'timestamp', // Add this line to specify the sort key
+
       projectionType: 'ALL',
       readCapacity: 1,
       writeCapacity: 1,
@@ -62,6 +67,8 @@ const messagesTable = new aws.dynamodb.Table('messagesTable', {
     {
       name: 'ReceiverIdIndex',
       hashKey: 'receiverId',
+      rangeKey: 'timestamp', // Add this line to specify the sort key
+
       projectionType: 'ALL',
       readCapacity: 1,
       writeCapacity: 1,
