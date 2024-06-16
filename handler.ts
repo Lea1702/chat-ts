@@ -139,7 +139,7 @@ export async function sendMessage(
     const newMessage = { messageId, senderId, receiverId, content }
 
     const command = new PutCommand({
-      TableName: 'messagesTable-8b833f5',
+      TableName: 'messagesTable-7e4cef7',
       Item: newMessage,
     })
 
@@ -257,7 +257,7 @@ export async function getMessages(
   try {
     if (userId) {
       const params = {
-        TableName: 'messagesTable-8b833f5',
+        TableName: 'messagesTable-7e4cef7',
         IndexName: 'SenderIdIndex', // Assumes GSI on senderId
         KeyConditionExpression: 'senderId = :senderId',
         ExpressionAttributeValues: {
