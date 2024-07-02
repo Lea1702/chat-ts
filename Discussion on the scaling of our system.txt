@@ -1,18 +1,18 @@
 Our system design incorporates several strategies to ensure scalability and efficient handling of increased user load, while also managing costs effectively.
 
 Caching with DAX:
-
 We planned to implement Amazon DynamoDB Accelerator (DAX) for caching, especially for group messages where multiple users request the same items. DAX reduces database calls, allowing multiple users to retrieve messages with fewer requests to DynamoDB. This approach not only enhances performance by reducing latency but also optimizes costs by minimizing provisioned throughput usage.
+
 Message Retrieval Optimization:
-
 Users have the option to fetch either new or unread messages. In the getMessages function, we retrieve the 10 most recent messages, optionally filtering for unread messages. Pagination is employed to retrieve additional messages only if requested, ensuring that only relevant data is fetched from the database. This approach efficiently manages database resources and reduces unnecessary data transfer.
+
 Effective Use of DynamoDB Features:
-
 Leveraging DynamoDB's partition key (messageId) enables rapid and efficient querying by ID, which is crucial for retrieving specific messages quickly. The addition of a sort key (timestamp) in the messages table facilitates efficient retrieval of the latest messages, supporting our pagination strategy effectively. Secondary indexes (senderId and receiverId) further optimize querying, aligning with specific user needs in message retrieval scenarios.
+
 Serverless Architecture with Lambda:
-
 We opted for AWS Lambda due to its serverless nature and automatic scaling capabilities. Lambda seamlessly scales from handling small user bases to accommodating millions of users as demand fluctuates. This elastic scaling ensures that our system maintains responsiveness under varying loads while scaling costs linearly with usage, aligning expenses closely with actual usage patterns.
-Cost Efficiency:
 
+Cost Efficiency:
 The architecture's design emphasizes cost efficiency by leveraging serverless computing and efficient database querying. Lambda functions scale automatically in response to workload changes, mitigating the need for constant monitoring and manual adjustments. This approach allows for cost-effective scaling, where expenditures correlate directly with system utilization, ensuring optimal resource allocation and budget management.
-In summary, our system architecture is designed to handle increased user load effectively through strategic caching, optimized data retrieval methods, efficient use of DynamoDB features, and leveraging serverless scalability with Lambda. These measures collectively enhance system responsiveness, maintain cost efficiency, and ensure seamless performance as user demand grows.
+
+In summary, our system architecture is designed to handle increased user load effectively through strategic caching, optimized data retrieval methods, efficient use of DynamoDB features, and leveraging serverless scalability with Lambda. These measures collectively enhance system responsiveness, maintain cost efficiency, and ensure seamless performance as user demand grows
