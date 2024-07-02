@@ -47,7 +47,6 @@ const messagesTable = new aws.dynamodb.Table('messagesTable', {
     { name: 'senderId', type: 'S' },
     { name: 'receiverId', type: 'S' },
     { name: 'timestamp', type: 'S' },
-    { name: 'read', type: 'BOOL' },
   ],
   hashKey: 'messageId',
   rangeKey: 'timestamp', // Add this line to specify the sort key
