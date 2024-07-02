@@ -259,9 +259,13 @@ export async function getMessages(
       const params = {
         TableName: 'messagesTable-7e4cef7',
         IndexName: 'SenderIdIndex', // Assumes GSI on senderId
-        KeyConditionExpression: 'senderId = :senderId',
+        KeyConditionExpression: 'senderId = :senderId and #read = :read' ,
         ExpressionAttributeValues: {
           ':senderId': userId,
+          ':read': false,  // Fetch only unread messages
+        },
+        ExpressionAttributeNames: {
+          '#read': 'read'  // 'read' is a reserved word, use ExpressionAttributeNames for aliasing
         },
         Limit: 10, // Fetch only the last X messages
         ScanIndexForward: false, // This makes sure the items are returned in descending order by sort key (assuming sort key is timestamp or similar)
@@ -274,6 +278,27 @@ export async function getMessages(
       const nextLastEvaluatedKey = result.LastEvaluatedKey
         ? JSON.stringify(result.LastEvaluatedKey)
         : null
+
+        // Update read status for fetched messages
+      const updatePromises = result.Items.map(message => {
+        const updateParams = {
+          TableName: 'messagesTable-7e4cef7',
+          Key: {
+            messageId: message.messageId,
+            timestamp: message.timestamp,
+          },
+          UpdateExpression: 'SET #read = :readValue',
+          ExpressionAttributeNames: {
+            '#read': 'read',
+          },
+          ExpressionAttributeValues: {
+            ':readValue': true,  // Mark message as read
+          },
+        }
+        return dynamo.send(new UpdateCommand(updateParams))
+      })
+
+      await Promise.all(updatePromises)
 
       return {
         statusCode: 200,
