@@ -15,6 +15,11 @@ AWS.config.update({ region: 'REGION' })
 
 const generateId = (): string => Math.random().toString(36).substring(2, 10)
 
+// Define table names as constants
+const USERS_TABLE = 'usersTable-01e0b26';
+const MESSAGES_TABLE = 'messagesTable-7e4cef7';
+const GROUPS_TABLE = 'groupsTable-98bb8ec';
+
 type Group = {
   groupId: string
   members: string[]
@@ -34,7 +39,7 @@ export async function registerUser(
     blockedUsers: [],
   }
   const command = new PutCommand({
-    TableName: 'usersTable-01e0b26',
+    TableName: USERS_TABLE,
     Item: newUser,
   })
 
@@ -62,7 +67,7 @@ export async function manageBlock(
   const dynamo = DynamoDBDocumentClient.from(client)
   try {
     const userResult = await dynamo.send(
-      new GetCommand({ TableName: 'usersTable-01e0b26', Key: { userId } })
+      new GetCommand({ TableName: USERS_TABLE, Key: { userId } })
     )
 
     const user = userResult.Item
@@ -82,7 +87,7 @@ export async function manageBlock(
     }
 
     const command = new PutCommand({
-      TableName: 'usersTable-01e0b26',
+      TableName: USERS_TABLE,
       Item: user,
     })
     const response = await dynamo.send(command)
@@ -113,13 +118,13 @@ export async function sendMessage(
   try {
     const senderResult = await dynamo.send(
       new GetCommand({
-        TableName: 'usersTable-01e0b26',
+        TableName: USERS_TABLE,
         Key: { userId: senderId },
       })
     )
     const receiverResult = await dynamo.send(
       new GetCommand({
-        TableName: 'usersTable-01e0b26',
+        TableName: USERS_TABLE,
         Key: { userId: receiverId },
       })
     )
@@ -139,7 +144,7 @@ export async function sendMessage(
     const newMessage = { messageId, senderId, receiverId, content }
 
     const command = new PutCommand({
-      TableName: 'messagesTable-7e4cef7',
+      TableName: MESSAGES_TABLE,
       Item: newMessage,
     })
 
@@ -179,7 +184,7 @@ export async function createGroup(
   }
 
   const command = new PutCommand({
-    TableName: 'groupsTable-98bb8ec',
+    TableName: GROUPS_TABLE,
     Item: newGroup,
   })
 
@@ -207,7 +212,7 @@ export async function manageGroupMembers(
 
   try {
     const groupResult = await dynamo.send(
-      new GetCommand({ TableName: 'groupsTable-98bb8ec', Key: { groupId } })
+      new GetCommand({ TableName: GROUPS_TABLE, Key: { groupId } })
     )
     const group = groupResult.Item
 
@@ -222,7 +227,7 @@ export async function manageGroupMembers(
     }
 
     const command = new PutCommand({
-      TableName: 'groupsTable-98bb8ec',
+      TableName: GROUPS_TABLE,
       Item: group,
     })
 
@@ -257,7 +262,7 @@ export async function getMessages(
   try {
     if (userId) {
       const params = {
-        TableName: 'messagesTable-7e4cef7',
+        TableName: MESSAGES_TABLE,
         IndexName: 'SenderIdIndex', // Assumes GSI on senderId
         KeyConditionExpression: 'senderId = :senderId',
         ExpressionAttributeValues: {
@@ -284,7 +289,7 @@ export async function getMessages(
       }
     } else if (groupId) {
       const groupResult = await dynamo.send(
-        new GetCommand({ TableName: 'groupsTable-98bb8ec', Key: { groupId } })
+        new GetCommand({ TableName: GROUPS_TABLE, Key: { groupId } })
       )
       const group = groupResult.Item
 
@@ -313,7 +318,7 @@ export async function checkBlockStatus(
   const dynamo = DynamoDBDocumentClient.from(client)
   const { userId, targetId } = JSON.parse(event.body!)
   const params = {
-    TableName: 'usersTable-01e0b26',
+    TableName: USERS_TABLE,
     Key: {
       userId,
     },
@@ -342,7 +347,7 @@ export async function getUsers(
   const client = new DynamoDBClient({})
   const dynamo = DynamoDBDocumentClient.from(client)
   const params = {
-    TableName: 'usersTable-01e0b26',
+    TableName: USERS_TABLE,
   }
 
   try {
